@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Calling…</title>
+<style>
+  body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;
+       font-family:-apple-system,system-ui,"Segoe UI",sans-serif;background:#0e1311;color:#e4ebe7;text-align:center}
+  .box{padding:24px;display:flex;flex-direction:column;gap:14px;align-items:center}
+  .num{font-size:26px;font-weight:600;letter-spacing:.02em}
+  a.btn{display:inline-block;padding:14px 28px;border-radius:10px;background:#55b993;color:#06120d;
+        font-weight:600;font-size:18px;text-decoration:none}
+  p{color:#93a199;font-size:14px;margin:0}
+</style>
+</head>
+<body>
+<div class="box">
+  <div class="num" id="num">—</div>
+  <a class="btn" id="go" href="#">Call</a>
+  <p id="msg">Opening your dialer…</p>
+  <p id="hint">This tab closes by itself.</p>
+</div>
+<script>
+  // The number travels after "#", which browsers never send to the server.
+  var raw = decodeURIComponent((location.hash || "").slice(1));
+  var num = raw.replace(/[^\d+]/g, "");
+
+  // Close this tab so the agent lands back on Lead Desk.
+  // Browsers only allow this for tabs opened by Lead Desk's Call button;
+  // if it's blocked, we show a short note instead.
+  var closed = false;
+  function closeMe(){
+    if (closed) return;
+    closed = true;
+    try { window.close(); } catch (e) {}
+    setTimeout(function(){
+      document.getElementById("msg").textContent = "Dialer opened.";
+      document.getElementById("hint").textContent = "You can close this tab and go back to Lead Desk.";
+    }, 300);
+  }
+
+  if (/^\+?\d{7,15}$/.test(num)) {
+    var tel = "tel:" + num;
+    document.getElementById("num").textContent = num;
+    document.getElementById("go").href = tel;
+    location.href = tel;
+    // Close as soon as the dialer takes over the screen, or after 1.5s at the latest.
+    document.addEventListener("visibilitychange", function(){ if (document.hidden) closeMe(); });
+    setTimeout(closeMe, 1500);
+  } else {
+    document.getElementById("go").style.display = "none";
+    document.getElementById("msg").textContent = "No valid number was passed. Go back to Lead Desk and tap Call again.";
+    document.getElementById("hint").textContent = "";
+  }
+</script>
+</body>
+</html>
